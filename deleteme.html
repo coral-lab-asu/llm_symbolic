@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM‑Symbolic Integration for Robust Temporal Tabular Reasoning</title>
+  <style>
+    :root{
+      --primary:#0e6ba8;
+      --secondary:#ff9f1c;
+      --dark:#222;
+      --light:#f7f9fc;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,Arial,Helvetica,sans-serif;background:var(--light);color:var(--dark);line-height:1.6}
+    header{background:var(--primary);color:#fff;padding:1rem 2rem;position:sticky;top:0;z-index:1000;display:flex;justify-content:space-between;align-items:center}
+    header h1{font-size:1.2rem;font-weight:600}
+    nav ul{display:flex;gap:1rem;list-style:none}
+    nav a{color:#fff;text-decoration:none;font-weight:500}
+    nav a:hover{text-decoration:underline}
+    .hero{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:4rem 1rem;background:#fff}
+    .hero h2{font-size:2rem;margin-bottom:.5rem}
+    .btn-bar{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:2rem 0}
+    .btn{background:var(--primary);color:#fff;padding:.75rem 1.25rem;border-radius:8px;text-decoration:none;font-weight:600;transition:background .2s}
+    .btn:hover{background:#09598c}
+    .btn.disabled{background:#999;cursor:not-allowed}
+    section.content{padding:3rem 1rem;max-width:900px;margin:auto}
+    section.content h2{font-size:1.6rem;margin-bottom:1rem;color:var(--primary)}
+    section.content h3{font-size:1.25rem;margin:1.5rem 0 .75rem;color:var(--secondary)}
+    figure{margin:1.5rem auto;text-align:center}
+    figure img{max-width:100%;height:auto;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+    figcaption{font-size:.9rem;margin-top:.5rem;color:#555}
+    .two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem}
+    pre{background:#272822;color:#f8f8f2;padding:1rem;border-radius:6px;overflow-x:auto}
+    footer{background:#eee;color:#555;padding:1rem;text-align:center;font-size:.875rem}
+    @media(max-width:600px){header{flex-direction:column;gap:.5rem}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LLM‑Symbolic Integration</h1>
+    <nav>
+      <ul>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#dataset">Dataset</a></li>
+        <li><a href="#methods">Methods</a></li>
+        <li><a href="#claims">Findings</a></li>
+        <li><a href="#citation">Citation</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h2>LLM-Symbolic Integration for Robust Temporal Tabular Reasoning</h2>
+    <p>ACL&nbsp;2025 • Findings of ACL</p>
+    <div class="btn-bar" id="resources">
+      <a class="btn" href="assets/LLM Symbolic Integration for Robust Temporal Tabular Reasoning.pdf" target="_blank">Paper</a>
+      <a class="btn" href="assets/ACL_2025_FIND-3902_LLM-Symbolic Integration for Robust Temporal Tabular Reasoning Presentation.pdf" target="_blank">Slides</a>
+      <a class="btn" href="assets/ACL_2025_FIND-3902_LLM-Symbolic Integration for Robust Temporal Tabular Reasoning Presentation Poster.pdf" target="_blank">Poster</a>
+      <a class="btn disabled" href="#" title="Video coming soon">Video (coming soon)</a>
+      <a class="btn" href="https://github.com/CoRAL-ASU/TEMPTABQA-C" target="_blank">Code + Data</a>
+    </div>
+  </section>
+
+  <section id="problem" class="content">
+    <h2>The Challenge</h2>
+    <p>Large Language Models (LLMs) shine at free‑form text generation, yet stumble when asked to <strong>reason over temporal, semi‑structured tables</strong>. Simple “read the table &amp; answer” prompts lead to brittle performance—especially when we tweak facts, enlarge the table, or craft multi‑hop questions.</p>
+    <figure>
+      <img src="assets/Pictures/Problem.png" alt="Example of direct‑prompt failure">
+      <figcaption>Example question where direct prompting hallucinates while symbolic SQL reasoning succeeds.</figcaption>
+    </figure>
+  </section>
+
+  <section id="dataset" class="content">
+    <h2>TEMPTABQA‑C: A Controlled Benchmark</h2>
+    <p>To diagnose these weaknesses we built <strong>TEMPTABQA‑C</strong>—over 200k Q&amp;A pairs drawn from Wikipedia infoboxes, stored in a relational schema and labeled across three axes:</p>
+    <ul>
+      <li><em>Original vs. Counterfactual</em> (we perturb facts to test memorization);</li>
+      <li><em>Small vs. Large</em> tables;</li>
+      <li><em>Easy → Hard</em> reasoning difficulty.</li>
+    </ul>
+    <figure>
+      <img src="assets/Pictures/Dataset_creation_pipeline.png" alt="Dataset creation pipeline">
+      <figcaption>Automatic pipeline: from infobox ➞ knowledge‑graph ➞ relational DB ➞ templated questions.</figcaption>
+    </figure>
+    <h3>Dataset Statistics</h3>
+    <figure>
+      <img src="assets/Pictures/Dataset_stats.png" alt="Dataset statistics">
+      <figcaption>Distribution of 200k questions across splits.</figcaption>
+    </figure>
+  </section>
+
+  <section id="methods" class="content">
+    <h2>Direct Prompting vs Symbolic Integration</h2>
+    <div class="two-col">
+      <div>
+        <h3>Direct Prompting</h3>
+        <p>Feed the entire table + question into the LLM and hope Chain‑of‑Thought (CoT), Plan‑&amp;-Solve, or PoT <em>implicitly</em> reasons. In practice the model memorizes patterns, is sensitive to row order, and slows down on big tables.</p>
+        <figure>
+          <img src="assets/Pictures/Direct_Prompting.png" alt="Direct prompting diagram">
+          <figcaption>Raw table ➞ free‑text rationale.</figcaption>
+        </figure>
+      </div>
+      <div>
+        <h3>Symbolic Integration</h3>
+        <p>Hide the data, expose only the <em>schema</em>. The LLM must output an SQL query, which we execute to get the answer. The query is verifiable, data‑blind, and executes in similar time even for huge tables.</p>
+        <figure>
+          <img src="assets/Pictures/Symbolic_Integration.png" alt="Symbolic integration diagram">
+          <figcaption>Schema ➞ SQL ➞ exact answer.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="claims" class="content">
+    <h2>Key Findings</h2>
+
+    <h3>1 · Robustness on Counterfactual Data</h3>
+    <p>When we swap names, ages, or medal counts (<em>counterfactuals</em>), direct prompts drop by ≈15 EM. SQL prompting shrinks the gap to &lt;3 points.</p>
+    <figure>
+      <img src="assets/Pictures/org_vs_counterfact.png" alt="Original vs counterfactual gap">
+      <figcaption>SQL almost erases the Original → Counterfactual gap.</figcaption>
+    </figure>
+
+    <h3>2 · Impact of Table Size</h3>
+    <p>Performance of direct prompts plummets on large tables (‑25 EM). SQL is practically size‑invariant (&lt;3 EM difference) because the DB engine does the heavy lifting.</p>
+    <figure>
+      <img src="assets/Pictures/small_vs_large.png" alt="Small vs large table gap">
+      <figcaption>Accuracy vs. table length.</figcaption>
+    </figure>
+
+    <h3>3 · Effect of Question Complexity</h3>
+    <p>SQL reasoning narrows the Easy–Hard gap by 10 EM and lifts accuracy at every level.</p>
+    <figure>
+      <img src="assets/Pictures/easy_medium_hard.png" alt="Easy vs medium vs hard">
+      <figcaption>Symbolic integration stays strong as reasoning difficulty rises.</figcaption>
+    </figure>
+  </section>
+
+ <section class="content">
+    <h2>Code Repository</h2>
+    <p>
+      Visit our code and dataset on GitHub:
+      <a href="https://github.com/CoRAL-ASU/llm_symbolic" target="_blank" rel="noopener noreferrer">
+        https://github.com/CoRAL-ASU/llm_symbolic
+      </a>
+    </p>
+  </section>
+  
+  <section id="citation" class="content">
+    <h2>Cite Us</h2>
+    <pre>@inproceedings{kulkarni-etal-2025-llm,
+    title = "{LLM}-Symbolic Integration for Robust Temporal Tabular Reasoning",
+    author = "Kulkarni, Atharv  and
+      Dixit, Kushagra  and
+      Srikumar, Vivek  and
+      Roth, Dan  and
+      Gupta, Vivek",
+    editor = "Che, Wanxiang  and
+      Nabende, Joyce  and
+      Shutova, Ekaterina  and
+      Pilehvar, Mohammad Taher",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2025",
+    month = jul,
+    year = "2025",
+    address = "Vienna, Austria",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.findings-acl.1022/",
+    pages = "19914--19940",
+    ISBN = "979-8-89176-256-5",
+    abstract = "Temporal tabular question answering presents a significant challenge for Large Language Models (LLMs), requiring robust reasoning over structured data{---}a task where traditional prompting methods often fall short. These methods face challenges such as memorization, sensitivity to table size, and reduced performance on complex queries. To overcome these limitations, we introduce TEMPTABQA-C, a synthetic dataset designed for systematic and controlled evaluations, alongside a symbolic intermediate representation that transforms tables into database schemas. This structured approach allows LLMs to generate and execute SQL queries, enhancing generalization and mitigating biases. By incorporating adaptive fewshot prompting with contextually tailored examples, our method achieves superior robustness, scalability, and performance. Experimental results consistently highlight improvements across key challenges, setting a new benchmark for robust temporal reasoning with LLMs. Code and TEMPTABQA-C dataset: <a href="https://github.com/CoRAL-ASU/llm_symbolic">https://github.com/CoRAL-ASU/llm_symbolic</a>
+}</pre>
+  </section>
+
+  <footer>
+    © 2025 |Atharv Kulkarni ⋅Kushagra Dixit ⋅Vivek Srikumar ⋅Dan Roth ⋅Vivek Gupta | Contact: <a href="mailto:athkulk@unc.edu">athkulk@unc.edu</a>
+  </footer>
+</body>
+</html>
+
